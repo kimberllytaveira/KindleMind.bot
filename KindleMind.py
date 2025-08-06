@@ -10,7 +10,7 @@ TOKEN = os.getenv("TOKEN") or "8365728614:AAHRusK1V34_ZHfeR4fUAbm0OVkje2Z4XMs"
 frases = [
     "📚 'A leitura é para o intelecto o que o exercício é para o corpo.' – Joseph Addison",
     "📝 'Um livro é um sonho que você segura com as mãos.' – Neil Gaiman",
-    "📖 'Ler é sonhar pela mão de outro.' – Fernando Pessoa"
+    "📖 'Ler é sonhar pela mão de outro.' – Fernando Pessoa!"
 ]
 
 # 📌 4. Clube do Livro
