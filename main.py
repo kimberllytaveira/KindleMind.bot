@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 # Substitua pelo seu token
-TOKEN = "8378976247:AAGwzpdTg4avT0RyBQnDjT0gFAcYEdRCO74" 
+TOKEN = os.environ.get('TOKEN')
 
 # Configuração de logs para depuração
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
