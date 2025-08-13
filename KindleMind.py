@@ -5,7 +5,7 @@ import requests
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 from telegram import Update
 
-TOKEN = os.getenv("TOKEN") or "SEU_TOKEN_AQUI"
+TOKEN = os.getenv("TOKEN") or "8378976247:AAGwzpdTg4avT0RyBQnDjT0gFAcYEdRCO74"
 
 # 📌 2. Frases literárias
 frases = [
