@@ -1,27 +1,36 @@
 import os
 import random
-import re
 import requests
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from flask import Flask, request
 from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-TOKEN = os.getenv("TOKEN") or "8378976247:AAGwzpdTg4avT0RyBQnDjT0gFAcYEdRCO74"
+# 📌 Pegando variáveis de ambiente
+TOKEN = os.getenv("TOKEN")
+APP_URL = os.getenv("APP_URL")  # ex: https://meu-bot.up.railway.app
 
-# 📌 2. Frases literárias
+# Flask app
+app = Flask(__name__)
+
+# Criar o updater e dispatcher
+updater = Updater(TOKEN, use_context=True)
+dp = updater.dispatcher
+
+# 📌 Frases literárias
 frases = [
     "📚 'A leitura é para o intelecto o que o exercício é para o corpo.' – Joseph Addison",
     "📝 'Um livro é um sonho que você segura com as mãos.' – Neil Gaiman",
     "📖 'Ler é sonhar pela mão de outro.' – Fernando Pessoa"
 ]
 
-# 📌 4. Clube do Livro
+# 📌 Clube do Livro
 livros_da_semana = [
     "📘 *Livro da Semana*: '1984' – George Orwell",
     "📘 *Livro da Semana*: 'O Pequeno Príncipe' – Antoine de Saint-Exupéry",
     "📘 *Livro da Semana*: 'Capitães da Areia' – Jorge Amado"
 ]
 
-# 📌 7. Quiz Literário
+# 📌 Quiz Literário
 quiz_perguntas = [
     {
         "pergunta": "Quem escreveu *Dom Casmurro*?",
@@ -71,41 +80,39 @@ def quiz(update: Update, context: CallbackContext):
     context.user_data['resposta_correta'] = q['correta']
     update.message.reply_text(texto)
 
-# 🎯 Verificação da resposta do quiz + filtro anti-spam
+# 🎯 Resposta do quiz
 def resposta_quiz(update: Update, context: CallbackContext):
-    texto_usuario = update.message.text.lower().strip()
+    resposta = update.message.text.lower().strip()
     correta = context.user_data.get('resposta_correta')
 
-    # 🔹 Bloqueia mensagens com links
-    if re.search(r"http[s]?://|www\.", texto_usuario):
-        return  # Ignora mensagens contendo links
-
-    # 🔹 Só responde se for resposta válida do quiz
-    if correta and texto_usuario in ['a', 'b', 'c']:
-        if texto_usuario == correta:
+    if correta and resposta in ['a', 'b', 'c']:
+        if resposta == correta:
             update.message.reply_text("✅ Acertou! Muito bem!")
         else:
             update.message.reply_text(f"❌ Errou! A resposta correta era: *{correta}*", parse_mode='Markdown')
         context.user_data['resposta_correta'] = None
-    else:
-        return  # Ignora qualquer outra mensagem
 
-# 🎯 Função principal
-def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+# Handlers
+dp.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("Olá! Envie /frase, /clube, /livro ou /quiz")))
+dp.add_handler(CommandHandler("frase", frase))
+dp.add_handler(CommandHandler("clube", clube))
+dp.add_handler(CommandHandler("livro", livro))
+dp.add_handler(CommandHandler("quiz", quiz))
+dp.add_handler(MessageHandler(Filters.text & ~Filters.command, resposta_quiz))
 
-    dp.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text(
-        "📚 Bem-vindo ao KindleMind! \n\nComandos disponíveis:\n/frase - Frase literária\n/clube - Livro da semana\n/livro [nome] - Buscar livro\n/quiz - Iniciar quiz"
-    )))
-    dp.add_handler(CommandHandler("frase", frase))
-    dp.add_handler(CommandHandler("clube", clube))
-    dp.add_handler(CommandHandler("livro", livro))
-    dp.add_handler(CommandHandler("quiz", quiz))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, resposta_quiz))
+# Rota para receber mensagens do Telegram
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), updater.bot)
+    dp.process_update(update)
+    return "ok"
 
-    updater.start_polling()
-    updater.idle()
+# Rota para configurar o webhook
+@app.route("/")
+def set_webhook():
+    updater.bot.setWebhook(f"{APP_URL}/{TOKEN}")
+    return "Webhook configurado!"
 
 if __name__ == "__main__":
-    main()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
