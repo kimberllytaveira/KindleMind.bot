@@ -1,5 +1,6 @@
 import os
 import random
+import re
 import requests
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 from telegram import Update
@@ -72,18 +73,22 @@ def quiz(update: Update, context: CallbackContext):
 
 # 🎯 Verificação da resposta do quiz + filtro anti-spam
 def resposta_quiz(update: Update, context: CallbackContext):
-    resposta = update.message.text.lower().strip()
+    texto_usuario = update.message.text.lower().strip()
     correta = context.user_data.get('resposta_correta')
 
-    if correta and resposta in ['a', 'b', 'c']:
-        if resposta == correta:
+    # 🔹 Bloqueia mensagens com links
+    if re.search(r"http[s]?://|www\.", texto_usuario):
+        return  # Ignora mensagens contendo links
+
+    # 🔹 Só responde se for resposta válida do quiz
+    if correta and texto_usuario in ['a', 'b', 'c']:
+        if texto_usuario == correta:
             update.message.reply_text("✅ Acertou! Muito bem!")
         else:
             update.message.reply_text(f"❌ Errou! A resposta correta era: *{correta}*", parse_mode='Markdown')
         context.user_data['resposta_correta'] = None
     else:
-        # Ignora qualquer mensagem que não seja resposta válida
-        return
+        return  # Ignora qualquer outra mensagem
 
 # 🎯 Função principal
 def main():
@@ -91,7 +96,7 @@ def main():
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text(
-        "Olá! Envie /frase, /clube, /livro ou /quiz para interagir."
+        "📚 Bem-vindo ao KindleMind! \n\nComandos disponíveis:\n/frase - Frase literária\n/clube - Livro da semana\n/livro [nome] - Buscar livro\n/quiz - Iniciar quiz"
     )))
     dp.add_handler(CommandHandler("frase", frase))
     dp.add_handler(CommandHandler("clube", clube))
