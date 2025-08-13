@@ -6,8 +6,8 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
 # 📌 Pegando variáveis de ambiente
-TOKEN = os.getenv("TOKEN")
-APP_URL = os.getenv("APP_URL")  # ex: https://meu-bot.up.railway.app
+TOKEN = os.getenv("8378976247:AAGwzpdTg4avT0RyBQnDjT0gFAcYEdRCO74")
+APP_URL = os.getenv("https://KindleMind.up.railway.app")  # ex: https://meu-bot.up.railway.app
 
 # Flask app
 app = Flask(__name__)
